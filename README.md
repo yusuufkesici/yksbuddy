@@ -5,39 +5,74 @@ Modern ve kullanıcı dostu bir mesajlaşma uygulaması. WhatsApp Web benzeri ar
 ## 🚀 Özellikler
 
 - 👤 Güvenli Kayıt ve Giriş Sistemi
-- 💬 Gerçek Zamanlı Mesajlaşma
+- 💬 Gerçek Zamanlı Mesajlaşma (Socket.IO)
 - 📸 Fotoğraf Paylaşımı
 - 👥 Çevrimiçi Kullanıcı Listesi
-- 🎙️ Sesli ve Görüntülü Görüşme (Yakında)
-- 🖥️ Ekran Paylaşımı (Yakında)
+- 📊 Kullanıcı Durumu Takibi (online/offline/away)
+- ✍️ "Yazıyor..." Göstergesi
+- 📱 Responsive Tasarım
 
 ## 🛠️ Kullanılan Teknolojiler
 
 ### Frontend
-- React.js
-- Tailwind CSS
-- Socket.io-client
-- WebRTC (Sesli/Görüntülü görüşme için)
+- React.js + TypeScript
+- Tailwind CSS (UI tasarımı)
+- Socket.io-client (gerçek zamanlı iletişim)
+- Zustand (state yönetimi)
+- Formik + Yup (form yönetimi ve validasyon)
+- React Router (sayfa yönlendirme)
+- React Hot Toast (bildirimler)
 
 ### Backend
-- Node.js
-- Express.js
-- Socket.io
-- JWT (Kimlik doğrulama)
-- Bcrypt (Şifre hashleme)
+- Node.js + Express.js
+- TypeScript
+- Socket.IO (WebSocket bağlantıları)
+- JWT (kimlik doğrulama)
+- Bcrypt (şifre hashleme)
+- Winston (loglama)
+- Express Rate Limit (rate limiting)
+- Express Validator (input validasyonu)
+- Multer (dosya yükleme)
 
-### Veritabanı
-- MongoDB
+### Veritabanı & Depolama
+- MongoDB (ana veritabanı)
+- Mongoose (ODM)
+- AWS S3 (medya depolama) - Hazır ama henüz aktif değil
 
-### Depolama
-- AWS S3 (Medya dosyaları için)
+### DevOps & Deployment
+- Nginx (reverse proxy, SSL)
+- PM2 (process yönetimi)
+- GitHub Actions (CI/CD) - Yakında eklenecek
+
+## 📝 Yapılanlar ve Yapılacaklar
+
+### ✅ Tamamlananlar
+- [x] Temel auth sistemi (kayıt/giriş)
+- [x] Gerçek zamanlı mesajlaşma
+- [x] Çevrimiçi kullanıcı listesi
+- [x] Kullanıcı durumu yönetimi
+- [x] Mesaj geçmişi
+- [x] Responsive UI
+- [x] Nginx yapılandırması
+- [x] PM2 entegrasyonu
+
+### 📋 Yapılacaklar
+- [ ] AWS S3 entegrasyonu
+- [ ] Dosya paylaşımı
+- [ ] Mesaj silme/düzenleme
+- [ ] Emoji reaksiyonları
+- [ ] Grup sohbetleri
+- [ ] Sesli/görüntülü görüşme
+- [ ] Ekran paylaşımı
+- [ ] Okundu bilgisi
+- [ ] Push notifications
 
 ## 🔧 Kurulum
 
 1. Repoyu klonlayın
 ```bash
-git clone https://github.com/kullaniciadi/yks-buddy-chat.git
-cd yks-buddy-chat
+git clone https://github.com/yusuufkesici/yksbuddy.git
+cd yksbuddy
 ```
 
 2. Backend bağımlılıklarını yükleyin
@@ -56,58 +91,132 @@ npm install
 ```bash
 # Backend (.env)
 PORT=5000
-MONGODB_URI=your_mongodb_uri
+MONGODB_URI=mongodb://localhost:27017/yks-buddy-chat
 JWT_SECRET=your_jwt_secret
-AWS_ACCESS_KEY=your_aws_access_key
-AWS_SECRET_KEY=your_aws_secret_key
-AWS_BUCKET_NAME=your_bucket_name
+JWT_REFRESH_SECRET=your_jwt_refresh_secret
+FRONTEND_URL=http://localhost:5173
 
 # Frontend (.env)
-REACT_APP_API_URL=http://localhost:5000
-REACT_APP_WS_URL=ws://localhost:5000
+VITE_API_URL=http://localhost:5000
+VITE_WS_URL=ws://localhost:5000
 ```
 
-5. Uygulamayı başlatın
+5. MongoDB'yi başlatın
 ```bash
-# Backend
-cd backend
-npm run dev
-
-# Frontend
-cd frontend
-npm start
+sudo systemctl start mongod
 ```
 
-## 📝 API Endpoints
+6. Backend'i başlatın
+```bash
+cd backend
+npm run build
+pm2 start dist/index.js --name yks-buddy-chat
+```
 
-### Kimlik Doğrulama
-- `POST /api/auth/register` - Yeni kullanıcı kaydı
-- `POST /api/auth/login` - Kullanıcı girişi
-- `GET /api/auth/me` - Mevcut kullanıcı bilgisi
+7. Frontend'i başlatın
+```bash
+cd frontend
+npm run dev
+```
 
-### Mesajlaşma
-- `GET /api/messages` - Son mesajları getir
-- `POST /api/messages` - Yeni mesaj gönder
-- `POST /api/messages/media` - Medya yükle
+## 📡 Nginx Yapılandırması
 
-### WebSocket Events
-- `user:online` - Kullanıcı çevrimiçi olduğunda
-- `user:offline` - Kullanıcı çevrimdışı olduğunda
-- `message:new` - Yeni mesaj geldiğinde
-- `typing:start` - Kullanıcı yazmaya başladığında
-- `typing:stop` - Kullanıcı yazmayı bıraktığında
+1. Nginx yapılandırma dosyasını oluşturun:
+```bash
+sudo nano /etc/nginx/sites-available/test.yksbuddy.com
+```
 
-## 🔜 Gelecek Özellikler
+2. Aşağıdaki yapılandırmayı ekleyin:
+```nginx
+server {
+    listen 80;
+    server_name test.yksbuddy.com;
 
-- Sesli görüşme
-- Görüntülü görüşme
-- Ekran paylaşımı
-- Dosya paylaşımı
-- Özel mesajlaşma
-- Grup sohbetleri
-- Emoji reaksiyonları
-- Mesaj arama
-- Okundu bilgisi
+    # Frontend
+    root /var/www/test.yksbuddy.com/frontend/dist;
+    index index.html;
+
+    # Gzip sıkıştırma
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 10240;
+    gzip_proxied expired no-cache no-store private auth;
+    gzip_types text/plain text/css text/xml text/javascript application/javascript application/x-javascript application/xml application/json;
+    gzip_disable "MSIE [1-6]\.";
+
+    # Frontend route'ları
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # API endpoint'leri
+    location /api {
+        proxy_pass http://localhost:5000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    # WebSocket bağlantısı
+    location /socket.io {
+        proxy_pass http://localhost:5000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    # Medya dosyaları
+    location /uploads {
+        alias /var/www/test.yksbuddy.com/uploads;
+        try_files $uri =404;
+    }
+}
+```
+
+3. Symbolic link oluşturun:
+```bash
+sudo ln -s /etc/nginx/sites-available/test.yksbuddy.com /etc/nginx/sites-enabled/
+```
+
+4. Nginx'i yeniden başlatın:
+```bash
+sudo nginx -t
+sudo systemctl restart nginx
+```
+
+## 🔒 Güvenlik
+
+- JWT tabanlı kimlik doğrulama
+- Bcrypt ile şifre hashleme
+- Rate limiting
+- CORS koruması
+- XSS ve CSRF koruması
+- Input validasyonu
+- Güvenli WebSocket bağlantıları
+
+## 📦 Veritabanı Şeması
+
+### User
+- username (string, unique)
+- email (string, unique)
+- password (string, hashed)
+- avatar (string, url)
+- status (enum: online/offline/away)
+- lastSeen (date)
+
+### Message
+- sender (User reference)
+- content (string)
+- type (enum: text/image/file)
+- mediaUrl (string, optional)
+- readBy (User references)
+- reactions (Array of {user, emoji})
+- replyTo (Message reference, optional)
+- createdAt (date)
 
 ## 🤝 Katkıda Bulunma
 
